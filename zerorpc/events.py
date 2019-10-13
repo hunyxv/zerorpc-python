@@ -66,13 +66,13 @@ class SequentialSender(object):
         e = None
         for i in range(len(parts) - 1):
             try:
-                self._socket.send(parts[i], copy=False, flags=zmq.SNDMORE)
+                self._socket.send(parts[i], copy=False, flags=zmq.SNDMORE)  # zmq.SNDMORE 表示发送的消息由多个消息帧组成.
             except (gevent.GreenletExit, gevent.Timeout) as e:
                 if i == 0:
                     raise
                 self._socket.send(parts[i], copy=False, flags=zmq.SNDMORE)
         try:
-            self._socket.send(parts[-1], copy=False)
+            self._socket.send(parts[-1], copy=False)  # 表示没有下一帧了
         except (gevent.GreenletExit, gevent.Timeout) as e:
             self._socket.send(parts[-1], copy=False)
         if e:
@@ -102,7 +102,7 @@ class SequentialReceiver(object):
                     raise
                 part = self._socket.recv(copy=False)
             parts.append(part)
-            if not part.more:
+            if not part.more:   # 判断还有没下一帧
                 break
         if e:
             raise e
@@ -203,13 +203,13 @@ class Event(object):
     def identity(self, v):
         self._identity = v
 
-    def pack(self):
+    def pack(self):    # 序列化
         payload = (self._header, self._name, self._args)
         r = msgpack.Packer(use_bin_type=True).pack(payload)
         return r
 
     @staticmethod
-    def unpack(blob):
+    def unpack(blob):   # 反序列化
         unpacker = msgpack.Unpacker(raw=False)
         unpacker.feed(blob)
         unpacked_msg = unpacker.unpack()
@@ -245,21 +245,21 @@ class Event(object):
 class Events(ChannelBase):
     def __init__(self, zmq_socket_type, context=None):
         self._debug = False
-        self._zmq_socket_type = zmq_socket_type
-        self._context = context or Context.get_instance()
-        self._socket = self._context.socket(zmq_socket_type)
+        self._zmq_socket_type = zmq_socket_type           # default zeromq.ROUTER
+        self._context = context or Context.get_instance()   # Context 单例模式
+        self._socket = self._context.socket(zmq_socket_type)    # 这里执行的是 zmq.Context().socket
 
         if zmq_socket_type in (zmq.PUSH, zmq.PUB, zmq.DEALER, zmq.ROUTER):
-            self._send = Sender(self._socket)
+            self._send = Sender(self._socket)            # 有队列的发送（协程？？）
         elif zmq_socket_type in (zmq.REQ, zmq.REP):
-            self._send = SequentialSender(self._socket)
+            self._send = SequentialSender(self._socket)  # 顺序发送
         else:
             self._send = None
 
         if zmq_socket_type in (zmq.PULL, zmq.SUB, zmq.DEALER, zmq.ROUTER):
-            self._recv = Receiver(self._socket)
+            self._recv = Receiver(self._socket)          # 有队列的接收（协程？？）
         elif zmq_socket_type in (zmq.REQ, zmq.REP):
-            self._recv = SequentialReceiver(self._socket)
+            self._recv = SequentialReceiver(self._socket)   # 有顺序的接收
         else:
             self._recv = None
 
@@ -304,7 +304,7 @@ class Events(ChannelBase):
 
     def _resolve_endpoint(self, endpoint, resolve=True):
         if resolve:
-            endpoint = self._context.hook_resolve_endpoint(endpoint)
+            endpoint = self._context.hook_resolve_endpoint(endpoint) # 执行 resolve_endpoint 这个钩子 endpoint 是 监听的地址
         if isinstance(endpoint, (tuple, list)):
             r = []
             for sub_endpoint in endpoint:
@@ -315,18 +315,18 @@ class Events(ChannelBase):
     def connect(self, endpoint, resolve=True):
         r = []
         for endpoint_ in self._resolve_endpoint(endpoint, resolve):
-            r.append(self._socket.connect(endpoint_))
+            r.append(self._socket.connect(endpoint_))    # 连接
             logger.debug('connected to %s (status=%s)', endpoint_, r[-1])
         return r
 
     def bind(self, endpoint, resolve=True):
         r = []
         for endpoint_ in self._resolve_endpoint(endpoint, resolve):
-            r.append(self._socket.bind(endpoint_))
+            r.append(self._socket.bind(endpoint_))      # 监听
             logger.debug('bound to %s (status=%s)', endpoint_, r[-1])
         return r
 
-    def disconnect(self, endpoint, resolve=True):
+    def disconnect(self, endpoint, resolve=True):   # 断开连接
         r = []
         for endpoint_ in self._resolve_endpoint(endpoint, resolve):
             r.append(self._socket.disconnect(endpoint_))
