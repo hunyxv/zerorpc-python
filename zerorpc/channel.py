@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 class ChannelMultiplexer(ChannelBase):
     def __init__(self, events, ignore_broadcast=False):
         self._events = events
-        self._active_channels = {}
+        self._active_channels = {}   #  存放的是一对一对的 id：通道 
         self._channel_dispatcher_task = None
         self._broadcast_queue = None
         if events.recv_is_supported and not ignore_broadcast:
@@ -72,14 +72,14 @@ class ChannelMultiplexer(ChannelBase):
             event = self._events.recv(timeout=timeout)
         return event
 
-    def _channel_dispatcher(self):
+    def _channel_dispatcher(self):   # channel 调度器
         while True:
             try:
                 event = self._events.recv()
             except Exception:
                 logger.exception('zerorpc.ChannelMultiplexer ignoring error on recv')
                 continue
-            channel_id = event.header.get(u'response_to', None)
+            channel_id = event.header.get(u'response_to', None)    # 获取目标 identity zmq.ROUTER?
 
             queue = None
             if channel_id is not None:

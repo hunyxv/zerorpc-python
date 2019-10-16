@@ -67,12 +67,13 @@ class SequentialSender(object):
         for i in range(len(parts) - 1):
             try:
                 self._socket.send(parts[i], copy=False, flags=zmq.SNDMORE)  # zmq.SNDMORE 表示发送的消息由多个消息帧组成.
+                # 在zmq.socket包中 parts[i] 被 zmq.Frame(data,...) 包装过
             except (gevent.GreenletExit, gevent.Timeout) as e:
                 if i == 0:
                     raise
                 self._socket.send(parts[i], copy=False, flags=zmq.SNDMORE)
         try:
-            self._socket.send(parts[-1], copy=False)  # 表示没有下一帧了
+            self._socket.send(parts[-1], copy=False)                        # 表示没有下一帧了
         except (gevent.GreenletExit, gevent.Timeout) as e:
             self._socket.send(parts[-1], copy=False)
         if e:
@@ -302,7 +303,7 @@ class Events(ChannelBase):
             else:
                 logger.debug('debug disabled')
 
-    def _resolve_endpoint(self, endpoint, resolve=True):
+    def _resolve_endpoint(self, endpoint, resolve=True): # 分解传进来的 endpoints
         if resolve:
             endpoint = self._context.hook_resolve_endpoint(endpoint) # 执行 resolve_endpoint 这个钩子 endpoint 是 监听的地址
         if isinstance(endpoint, (tuple, list)):
@@ -333,13 +334,13 @@ class Events(ChannelBase):
             logger.debug('disconnected from %s (status=%s)', endpoint_, r[-1])
         return r
 
-    def new_event(self, name, args, xheader=None):
+    def new_event(self, name, args, xheader=None):    # 当一个functer返回一个结果时或（？client生成一个请求时？）创建新的事件
         event = Event(name, args, context=self._context)
         if xheader:
             event.header.update(xheader)
         return event
 
-    def emit_event(self, event, timeout=None):
+    def emit_event(self, event, timeout=None):  # 发送 消息
         if self._debug:
             logger.debug('--> %s', event)
         if event.identity:
@@ -354,16 +355,16 @@ class Events(ChannelBase):
     def recv(self, timeout=None):
         parts = self._recv(timeout=timeout)
         if len(parts) > 2:
-            identity = parts[0:-2]
+            identity = parts[0:-2]  # ['n','n2',...,'', pack]
             blob = parts[-1]
         elif len(parts) == 2:
-            identity = parts[0:-1]
+            identity = parts[0:-1]  # ['', pack] ?
             blob = parts[-1]
         else:
             identity = None
             blob = parts[0]
-        event = Event.unpack(get_pyzmq_frame_buffer(blob))
-        event.identity = identity
+        event = Event.unpack(get_pyzmq_frame_buffer(blob))  # 获取帧的缓冲区谁并反序列化
+        event.identity = identity  # identity 是一个list？
         if self._debug:
             logger.debug('<-- %s', event)
         return event

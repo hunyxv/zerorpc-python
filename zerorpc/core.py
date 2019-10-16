@@ -92,7 +92,7 @@ class ServerBase(object):
         self.stop()
         self._multiplexer.close()
 
-    def _format_args_spec(self, args_spec, r=None):
+    def _format_args_spec(self, args_spec, r=None):      # [{name: xx[, default: jj]},...]
         if args_spec:
             r = [dict(name=name) for name in args_spec[0]]
             default_values = args_spec[3]
@@ -153,17 +153,17 @@ class ServerBase(object):
         event = bufchan.recv()
         try:
             self._context.hook_load_task_context(event.header)         # load_task_context hook 
-            functor = self._methods.get(event.name, None)              # 根据 event.name 获取 event 相对应的函数
+            functor = self._methods.get(event.name, None)              # 根据 event.name 获取 event 相对应的函数，functor是被一个类装饰过的了
             if functor is None:
                 raise NameError(event.name)
-            functor.pattern.process_call(self._context, bufchan, event, functor)
+            functor.pattern.process_call(self._context, bufchan, event, functor)  # 执行函数 和 函数钩子
         except LostRemote:
             exc_infos = list(sys.exc_info())
             self._print_traceback(protocol_v1, exc_infos)
-        except Exception:
+        except Exception:        # 发生了其他错误 
             exc_infos = list(sys.exc_info())
             human_exc_infos = self._print_traceback(protocol_v1, exc_infos)
-            reply_event = bufchan.new_event(u'ERR', human_exc_infos,
+            reply_event = bufchan.new_event(u'ERR', human_exc_infos,    # 创建异常 event
                     self._context.hook_get_task_context())
             self._context.hook_server_inspect_exception(event, reply_event, exc_infos)
             bufchan.emit_event(reply_event)
@@ -174,7 +174,7 @@ class ServerBase(object):
     def _acceptor(self):
         while True:
             initial_event = self._multiplexer.recv()                      # 拿到一个最初的 event
-            self._task_pool.spawn(self._async_task, initial_event)        # 加入到协程池
+            self._task_pool.spawn(self._async_task, initial_event)        # 加入到协程池（执行这个函数）
 
     def run(self):
         self._acceptor_task = gevent.spawn(self._acceptor)
