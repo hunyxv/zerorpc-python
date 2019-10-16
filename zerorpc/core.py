@@ -67,7 +67,7 @@ class ServerBase(object):
         self._inject_builtins()
         self._heartbeat_freq = heartbeat
 
-        for (k, functor) in iteritems(self._methods):
+        for (k, functor) in iteritems(self._methods):       # 着这里对 用户写的task函数装饰了一次
             if not isinstance(functor, DecoratorBase):
                 self._methods[k] = rep(functor)
 
@@ -75,7 +75,7 @@ class ServerBase(object):
     def _filter_methods(cls, self, methods):
         if isinstance(methods, dict):
             return methods
-        server_methods = set(k for k in dir(cls) if not k.startswith('_'))
+        server_methods = set(k for k in dir(cls) if not k.startswith('_'))  # {'debug', 'disconnect', 'close', 'run', 'bind', 'stop', 'connect'}
         return dict((k, getattr(methods, k))
                     for k in dir(methods)
                     if callable(getattr(methods, k)) and
@@ -104,17 +104,23 @@ class ServerBase(object):
     def _zerorpc_inspect(self):
         methods = dict((m, f) for m, f in iteritems(self._methods)
                     if not m.startswith('_'))
-        detailled_methods = dict((m,
-            dict(args=self._format_args_spec(f._zerorpc_args()),
-                doc=f._zerorpc_doc())) for (m, f) in iteritems(methods))
-        return {'name': self._name,
+        detailled_methods = dict(
+            (
+                m,
+                dict(
+                    args=self._format_args_spec(f._zerorpc_args()),
+                    doc=f._zerorpc_doc()
+                )
+            ) for (m, f) in iteritems(methods)
+        )             # 一个函数详细信息的字典， 函数名，函数参数，函数说明文档
+        return {'name': self._name,       # methods name
                 'methods': detailled_methods}
 
     def _inject_builtins(self):
         self._methods['_zerorpc_list'] = lambda: [m for m in self._methods
-                if not m.startswith('_')]
-        self._methods['_zerorpc_name'] = lambda: self._name
-        self._methods['_zerorpc_ping'] = lambda: ['pong', self._name]
+                if not m.startswith('_')]                                     # methods list
+        self._methods['_zerorpc_name'] = lambda: self._name                   # methods class name
+        self._methods['_zerorpc_ping'] = lambda: ['pong', self._name]         # 
         self._methods['_zerorpc_help'] = lambda m: \
             self._methods[m]._zerorpc_doc()
         self._methods['_zerorpc_args'] = \
@@ -126,13 +132,13 @@ class ServerBase(object):
             raise NameError(method)
         return self._methods[method](*args)
 
-    def _print_traceback(self, protocol_v1, exc_infos):
+    def _print_traceback(self, protocol_v1, exc_infos):  # 输出异常？
         logger.exception('')
 
         exc_type, exc_value, exc_traceback = exc_infos
         if protocol_v1:
             return (repr(exc_value),)
-        human_traceback = traceback.format_exc()
+        human_traceback = traceback.format_exc()    # 把异常栈以字符串的形式返回
         name = exc_type.__name__
         human_msg = str(exc_value)
         return (name, human_msg, human_traceback)
@@ -146,8 +152,8 @@ class ServerBase(object):
         exc_infos = None
         event = bufchan.recv()
         try:
-            self._context.hook_load_task_context(event.header)
-            functor = self._methods.get(event.name, None)
+            self._context.hook_load_task_context(event.header)         # load_task_context hook 
+            functor = self._methods.get(event.name, None)              # 根据 event.name 获取 event 相对应的函数
             if functor is None:
                 raise NameError(event.name)
             functor.pattern.process_call(self._context, bufchan, event, functor)
@@ -167,16 +173,16 @@ class ServerBase(object):
 
     def _acceptor(self):
         while True:
-            initial_event = self._multiplexer.recv()
-            self._task_pool.spawn(self._async_task, initial_event)
+            initial_event = self._multiplexer.recv()                      # 拿到一个最初的 event
+            self._task_pool.spawn(self._async_task, initial_event)        # 加入到协程池
 
     def run(self):
         self._acceptor_task = gevent.spawn(self._acceptor)
         try:
-            self._acceptor_task.get()
+            self._acceptor_task.get()   # 执行 gevent.spawn(self._acceptor) 这个协程
         finally:
             self.stop()
-            self._task_pool.join(raise_error=True)
+            self._task_pool.join(raise_error=True)   # 开始执行 gevent协程池 中的程序
 
     def stop(self):
         if self._acceptor_task is not None:
@@ -282,7 +288,7 @@ class Server(SocketBase, ServerBase):
 
     def __init__(self, methods=None, name=None, context=None, pool_size=None,
             heartbeat=5):
-        SocketBase.__init__(self, zmq.ROUTER, context)
+        SocketBase.__init__(self, zmq.ROUTER, context)   # zmq.ROUTER zmq 中的一种套接字 https://github.com/anjuke/zguide-cn/blob/master/chapter2.md
         if methods is None:
             methods = self
 

@@ -41,7 +41,7 @@ class Context(zmq.Context):
         self._hooks = {
             'resolve_endpoint': [],
             'load_task_context': [],
-            'get_task_context': [],
+            'get_task_context': [],                  # 获取到结果后执行 添加结果事件的 header
             'server_before_exec': [],
             'server_after_exec': [],
             'server_inspect_exception': [],

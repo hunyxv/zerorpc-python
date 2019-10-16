@@ -26,11 +26,11 @@
 class ReqRep(object):
 
     def process_call(self, context, channel, req_event, functor):
-        context.hook_server_before_exec(req_event)
-        result = functor(*req_event.args)
-        rep_event = channel.new_event(u'OK', (result,),
-                context.hook_get_task_context())
-        context.hook_server_after_exec(req_event, rep_event)
+        context.hook_server_before_exec(req_event)               # 执行 server_before_exec 钩子
+        result = functor(*req_event.args)                        # 执行 task 函数
+        rep_event = channel.new_event(u'OK', (result,),          # 创建一个新的 event 
+                context.hook_get_task_context())                 # 执行 get_task_context 钩子
+        context.hook_server_after_exec(req_event, rep_event)     # 执行 server_after_exec 钩子
         channel.emit_event(rep_event)
 
     def accept_answer(self, event):

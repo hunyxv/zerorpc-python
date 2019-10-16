@@ -48,7 +48,7 @@ class DecoratorBase(object):
             return None
         return inspect.cleandoc(self.__doc__)
 
-    def _zerorpc_args(self):
+    def _zerorpc_args(self):     # 获取函数参数
         try:
             args_spec = self._functor._zerorpc_args()
         except AttributeError:
@@ -56,7 +56,7 @@ class DecoratorBase(object):
                 args_spec = inspect.getargspec(self._functor)
             except TypeError:
                 try:
-                    args_spec = inspect.getargspec(self._functor.__call__)
+                    args_spec = inspect.getargspec(self._functor.__call__)   # functor 是一个可调用实例
                 except (AttributeError, TypeError):
                     args_spec = None
         return args_spec
