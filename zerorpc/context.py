@@ -107,7 +107,7 @@ class Context(zmq.Context):
         self._msg_id_counter = random.randrange(0, 2 ** 32)
         self._msg_id_counter_stop = random.randrange(self._msg_id_counter, 2 ** 32)
 
-    def new_msgid(self):
+    def new_msgid(self):                                              # message id 就是 channel id ; 看 channel.Channel()._channel_id
         if self._msg_id_counter >= self._msg_id_counter_stop:
             self._reset_msgid()
         else:

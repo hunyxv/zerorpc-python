@@ -175,7 +175,7 @@ class Event(object):
         self._name = name
         self._args = args
         if header is None:
-            self._header = {u'message_id': context.new_msgid(), u'v': 3}
+            self._header = {u'message_id': context.new_msgid(), u'v': 3}   # message id 就是 channel id ; 看 channel.Channel()._channel_id
         else:
             self._header = header
         self._identity = None
@@ -355,10 +355,10 @@ class Events(ChannelBase):
     def recv(self, timeout=None):
         parts = self._recv(timeout=timeout)
         if len(parts) > 2:
-            identity = parts[0:-2]  # ['n','n2',...,'', pack]
+            identity = parts[0:-2]  # ['id1','id2',...,'id-n', pack]
             blob = parts[-1]
         elif len(parts) == 2:
-            identity = parts[0:-1]  # ['', pack] ?
+            identity = parts[0:-1]  # ['id', pack] ?
             blob = parts[-1]
         else:
             identity = None

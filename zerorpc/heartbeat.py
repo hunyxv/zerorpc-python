@@ -39,9 +39,9 @@ class HeartBeatOnChannel(ChannelBase):
     def __init__(self, channel, freq=5, passive=False):
         self._closed = False
         self._channel = channel
-        self._heartbeat_freq = freq
+        self._heartbeat_freq = freq    # 频率
         self._input_queue = gevent.queue.Channel()
-        self._remote_last_hb = None
+        self._remote_last_hb = None   # 最近的心跳时间
         self._lost_remote = False
         self._recv_task = gevent.spawn(self._recver)
         self._heartbeat_task = None
@@ -70,7 +70,7 @@ class HeartBeatOnChannel(ChannelBase):
             self._channel.close()
             self._channel = None
 
-    def _heartbeat(self):
+    def _heartbeat(self):   # 发送 心跳 帧
         while True:
             gevent.sleep(self._heartbeat_freq)
             if self._remote_last_hb is None:
@@ -87,7 +87,7 @@ class HeartBeatOnChannel(ChannelBase):
         if self._heartbeat_task is None and self._heartbeat_freq is not None and not self._closed:
             self._heartbeat_task = gevent.spawn(self._heartbeat)
 
-    def _recver(self):
+    def _recver(self):    # 接收心跳帧
         while True:
             event = self._channel.recv()
             if self._compat_v2 is None:
@@ -99,7 +99,7 @@ class HeartBeatOnChannel(ChannelBase):
                     event.name = u'_zpc_more'
                     self._input_queue.put(event)
             else:
-                self._input_queue.put(event)
+                self._input_queue.put(event)          # 不是心跳帧 放到 self._input_queue
 
     def _lost_remote_exception(self):
         return LostRemote('Lost remote after {0}s heartbeat'.format(
