@@ -217,7 +217,7 @@ class BufferedChannel(ChannelBase):
                     'BufferedChannel, queue overflow on event:', event)
             else:
                 self._input_queue.put(event)           # ？？ 缓存
-                if self._on_close_if is not None and self._on_close_if(event):  # ？？
+                if self._on_close_if is not None and self._on_close_if(event):  # 通过 设置 _on_close_if 来判断传输结束
                     self._recv_task = None
                     self.close()
                     return

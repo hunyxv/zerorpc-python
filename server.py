@@ -15,7 +15,6 @@ class middleware():
         print('server_before_exec success')
     
 
-
     def load_task_context(self, event_header):   # 加载task前调用
         print('hook_load_task_context success')
         print(event_header)           # {'message_id': b'7e167ce3f5a0471ea99bdd647c4b797b', 'v': 3}
@@ -27,6 +26,9 @@ class HelloRPC(object):
         a test
         """
         return "Hello, %s" % name
+
+    def howareyou(self, name):
+        return "Hello are you, %s ?" % name
 
 s = zerorpc.Server(HelloRPC())
 s.debug=True

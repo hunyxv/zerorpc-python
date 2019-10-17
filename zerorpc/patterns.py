@@ -36,7 +36,7 @@ class ReqRep(object):
     def accept_answer(self, event):
         return event.name in (u'OK', u'ERR')
 
-    def process_answer(self, context, channel, req_event, rep_event,
+    def process_answer(self, context, channel, req_event, rep_event,       # 客户端接收结果
             handle_remote_error):
         try:
             if rep_event.name == u'ERR':

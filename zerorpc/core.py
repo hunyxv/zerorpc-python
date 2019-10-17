@@ -148,7 +148,7 @@ class ServerBase(object):
         channel = self._multiplexer.channel(initial_event)
         hbchan = HeartBeatOnChannel(channel, freq=self._heartbeat_freq,
                 passive=protocol_v1)       # 心跳 channel， 其中将不是心跳的帧放到 其 queue中了 通过recv 获取
-        bufchan = BufferedChannel(hbchan)      # BufferedChannel 没全看明白 里面维护两个长度， 一个队列（存放将要发送的event）
+        bufchan = BufferedChannel(hbchan)      # BufferedChannel 没全看明白 里面维护两个长度(远端队列长度和本地队列长度)， 一个队列（存放将要发送的event）
     
         exc_infos = None
         event = bufchan.recv()
