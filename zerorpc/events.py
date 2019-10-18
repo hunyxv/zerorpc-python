@@ -121,7 +121,7 @@ class Sender(SequentialSender):
 
     def __init__(self, socket):
         self._socket = socket
-        self._send_queue = gevent.queue.Channel()
+        self._send_queue = gevent.queue.Channel()   # gevent.queue.Channel 是 gevent.queue.Queue(0) 的代替，因为Queue 是通道 而 Queue(0) 会导致阻塞，所以要使用 Channel()
         self._send_task = gevent.spawn(self._sender)
 
     def close(self):
@@ -129,7 +129,7 @@ class Sender(SequentialSender):
             self._send_task.kill()
 
     def _sender(self):
-        for parts in self._send_queue:
+        for parts in self._send_queue:        # 这个循环不会结束，队列中没有值后会阻塞等待
             super(Sender, self)._send(parts)
 
     def __call__(self, parts, timeout=None):
@@ -253,14 +253,14 @@ class Events(ChannelBase):
         if zmq_socket_type in (zmq.PUSH, zmq.PUB, zmq.DEALER, zmq.ROUTER):
             self._send = Sender(self._socket)            # 有队列的发送（协程？？）
         elif zmq_socket_type in (zmq.REQ, zmq.REP):
-            self._send = SequentialSender(self._socket)  # 顺序发送
+            self._send = SequentialSender(self._socket)  # 一次发送， 请求--应答模式使用
         else:
             self._send = None
 
         if zmq_socket_type in (zmq.PULL, zmq.SUB, zmq.DEALER, zmq.ROUTER):
             self._recv = Receiver(self._socket)          # 有队列的接收（协程？？）
         elif zmq_socket_type in (zmq.REQ, zmq.REP):
-            self._recv = SequentialReceiver(self._socket)   # 有顺序的接收
+            self._recv = SequentialReceiver(self._socket)   # zmq 请求应答时使用
         else:
             self._recv = None
 

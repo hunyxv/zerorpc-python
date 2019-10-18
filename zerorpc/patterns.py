@@ -72,7 +72,7 @@ class ReqStream(object):
 
         def is_stream_done(rep_event):
             return rep_event.name == u'STREAM_DONE'
-        channel.on_close_if = is_stream_done
+        channel.on_close_if = is_stream_done             # channel 关闭的条件
 
         def iterator(req_event, rep_event):
             try:

@@ -92,7 +92,7 @@ class ServerBase(object):
         self.stop()
         self._multiplexer.close()
 
-    def _format_args_spec(self, args_spec, r=None):      # [{name: xx[, default: jj]},...]
+    def _format_args_spec(self, args_spec, r=None):      # args_spec: inspect.getargspec(func(a, b=10))--> ArgSpec(args=['a', 'b'], varargs=None, keywords=None, defaults=(10,))
         if args_spec:
             r = [dict(name=name) for name in args_spec[0]]
             default_values = args_spec[3]
@@ -108,7 +108,7 @@ class ServerBase(object):
             (
                 m,
                 dict(
-                    args=self._format_args_spec(f._zerorpc_args()),
+                    args=self._format_args_spec(f._zerorpc_args()),  # inspect.getargspec(func(a, b=10))--> ArgSpec(args=['a', 'b'], varargs=None, keywords=None, defaults=(10,))
                     doc=f._zerorpc_doc()
                 )
             ) for (m, f) in iteritems(methods)

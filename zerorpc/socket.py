@@ -31,7 +31,7 @@ class SocketBase(object):
 
     def __init__(self, zmq_socket_type, context=None):
         self._context = context or Context.get_instance()   # socket 上下文 hook
-        self._events = Events(zmq_socket_type, context)     # socket 事件？
+        self._events = Events(zmq_socket_type, context)     # socket 事件，监听、发送
 
     def close(self):
         self._events.close()
