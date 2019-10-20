@@ -337,7 +337,7 @@ class Events(ChannelBase):
     def new_event(self, name, args, xheader=None):    # 当一个functer返回一个结果时或（？client生成一个请求时？）创建新的事件
         event = Event(name, args, context=self._context)
         if xheader:
-            event.header.update(xheader)
+            event.header.update(xheader)   # get_task_context() 钩子返回的header update 到原始的里面
         return event
 
     def emit_event(self, event, timeout=None):  # 发送 消息

@@ -145,7 +145,7 @@ class ServerBase(object):
 
     def _async_task(self, initial_event):
         protocol_v1 = initial_event.header.get(u'v', 1) < 2
-        channel = self._multiplexer.channel(initial_event)
+        channel = self._multiplexer.channel(initial_event)   # 拿到第一个 event，然后创建 channel
         hbchan = HeartBeatOnChannel(channel, freq=self._heartbeat_freq,
                 passive=protocol_v1)       # 心跳 channel， 其中将不是心跳的帧放到 其 queue中了 通过recv 获取
         bufchan = BufferedChannel(hbchan)      # BufferedChannel 没全看明白 里面维护两个长度(远端队列长度和本地队列长度)， 一个队列（存放将要发送的event）
@@ -186,7 +186,7 @@ class ServerBase(object):
             self._acceptor_task.get()   # 执行 gevent.spawn(self._acceptor) 这个协程
         finally:
             self.stop()
-            self._task_pool.join(raise_error=True)   # 开始执行 gevent协程池 中的程序
+            self._task_pool.join(raise_error=True)   # 等待已经正在执行的task结束
 
     def stop(self):
         if self._acceptor_task is not None:

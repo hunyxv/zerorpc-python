@@ -11,9 +11,12 @@ class middleware():
 
     def server_before_exec(self, event):        # 执行 task 之前调用
         print('event args', event.args)             # ['RPC']
-        print('event: ', event)      # <b'\x00k\x8bEg'> hello {'message_id': b'df0428dc367a4f149c367153d631cb18', 'v': 3} ['RPC'] : identity, name, header, args
+        print('event: ', event)      
+        # <b'\x00k\x8bEg'> hello {'message_id': b'df0428dc367a4f149c367153d631cb18', 'v': 3} ['RPC'] : identity, name, header, args
         print('server_before_exec success')
     
+    def get_task_context(self):
+        return {'name': 'hunyxv'}
 
     def load_task_context(self, event_header):   # 加载task前调用
         print('hook_load_task_context success')

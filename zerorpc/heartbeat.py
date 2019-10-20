@@ -45,7 +45,7 @@ class HeartBeatOnChannel(ChannelBase):
         self._lost_remote = False
         self._recv_task = gevent.spawn(self._recver)
         self._heartbeat_task = None
-        self._parent_coroutine = gevent.getcurrent()
+        self._parent_coroutine = gevent.getcurrent()  # 返回当前正在执行的greenlet
         self._compat_v2 = None
         if not passive:
             self._start_heartbeat()

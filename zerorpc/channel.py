@@ -42,7 +42,7 @@ class ChannelMultiplexer(ChannelBase):
         self._active_channels = {}   #  存放的是一对一对的 id：通道 
         self._channel_dispatcher_task = None
         self._broadcast_queue = None
-        if events.recv_is_supported and not ignore_broadcast:
+        if events.recv_is_supported and not ignore_broadcast:   # 支持接收 并且 没有忽略广播
             self._broadcast_queue = gevent.queue.Queue(maxsize=1)
             self._channel_dispatcher_task = gevent.spawn(
                 self._channel_dispatcher)
@@ -86,7 +86,7 @@ class ChannelMultiplexer(ChannelBase):
                 channel = self._active_channels.get(channel_id, None)   # 根据 ～～identity～～ 获取 channel, channel_id 是 message_id n122行
                 if channel is not None:
                     queue = channel._queue
-            elif self._broadcast_queue is not None:
+            elif self._broadcast_queue is not None:   # 客户端来的第一个 event 包， 此时没有创建 channel，所以没有channel_id None
                 queue = self._broadcast_queue
 
             if queue is None:
