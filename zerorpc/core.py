@@ -158,7 +158,7 @@ class ServerBase(object):
             if functor is None:
                 raise NameError(event.name)
             functor.pattern.process_call(self._context, bufchan, event, functor)  # 执行函数 和 函数钩子
-        except LostRemote:
+        except LostRemote:    # 连接中断
             exc_infos = list(sys.exc_info())
             self._print_traceback(protocol_v1, exc_infos)
         except Exception:        # 发生了其他错误 
@@ -170,7 +170,7 @@ class ServerBase(object):
             bufchan.emit_event(reply_event)
         finally:
             del exc_infos
-            bufchan.close()
+            bufchan.close()   # 这里也关闭了 hbchan
 
     def _acceptor(self):
         """
