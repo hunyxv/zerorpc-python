@@ -224,7 +224,7 @@ class ClientBase(object):
         for pattern in self._context.hook_client_patterns_list(
                 patterns.patterns_list):
             if pattern.accept_answer(event):  # 判断 event 是 REP 还是 STEAM
-                return pattern
+                return pattern                # 返回 符合 的 pattern
         return None
 
     def _process_response(self, request_event, bufchan, timeout):
@@ -261,7 +261,7 @@ class ClientBase(object):
         # (ASCII is contained in UTF-8) that we decode to an unicode string.
         # Right after, msgpack-python will re-encode it as UTF-8. Yes this is
         # terribly inefficient with Python2 because most of the time `method`
-        # will already be an UTF-8 encoded bytes string.
+        # wll already be an UTF-8 encoded bytes string.
         if isinstance(method, bytes):
             method = method.decode('utf-8')
 
@@ -273,13 +273,13 @@ class ClientBase(object):
 
         xheader = self._context.hook_get_task_context()
         request_event = bufchan.new_event(method, args, xheader)
-        self._context.hook_client_before_request(request_event)
+        self._context.hook_client_before_request(request_event)  # 钩子 client_before_request
         bufchan.emit_event(request_event)
 
-        if kargs.get('async', False) is False:
+        if kargs.get('async', False) is False:   # 如果不是异步的话 就阻塞等待结果
             return self._process_response(request_event, bufchan, timeout)
 
-        async_result = gevent.event.AsyncResult()
+        async_result = gevent.event.AsyncResult()  # .AsyncResult - 等待单一结果而阻塞,也允许引发异常.
         gevent.spawn(self._process_response, request_event, bufchan,
                 timeout).link(async_result)
         return async_result
