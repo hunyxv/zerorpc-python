@@ -223,14 +223,14 @@ class ClientBase(object):
     def _select_pattern(self, event):
         for pattern in self._context.hook_client_patterns_list(
                 patterns.patterns_list):
-            if pattern.accept_answer(event):
+            if pattern.accept_answer(event):  # 判断 event 是 REP 还是 STEAM
                 return pattern
         return None
 
     def _process_response(self, request_event, bufchan, timeout):
         def raise_error(ex):
             bufchan.close()
-            self._context.hook_client_after_request(request_event, None, ex)
+            self._context.hook_client_after_request(request_event, None, ex)  # 请求完成之后执行的钩子hook_client_after_request （此时接受发生超时 或 pattern不符合要求）
             raise ex
 
         try:
@@ -239,13 +239,13 @@ class ClientBase(object):
             raise_error(TimeoutExpired(timeout,
                     'calling remote method {0}'.format(request_event.name)))
 
-        pattern = self._select_pattern(reply_event)
+        pattern = self._select_pattern(reply_event)     # 根据 event.name 来判断响应是何类型，选择处理方式
         if pattern is None:
             raise_error(RuntimeError(
                 'Unable to find a pattern for: {0}'.format(request_event)))
 
         return pattern.process_answer(self._context, bufchan, request_event,
-                reply_event, self._handle_remote_error)
+                reply_event, self._handle_remote_error) # 如果是REP 则返回执行结果， 若是 STREAM 则返回一个迭代器
 
     def __call__(self, method, *args, **kargs):
         # here `method` is either a string of bytes or an unicode string in
@@ -285,7 +285,7 @@ class ClientBase(object):
         return async_result
 
     def __getattr__(self, method):
-        return lambda *args, **kargs: self(method, *args, **kargs)
+        return lambda *args, **kargs: self(method, *args, **kargs)  # 在这执行 function 请求 ！！！
 
 
 class Server(SocketBase, ServerBase):
