@@ -397,7 +397,7 @@ class Subscriber(Puller):
     def __init__(self, methods=None, context=None):
         super(Subscriber, self).__init__(methods=methods, context=context,
                 zmq_socket=zmq.SUB)
-        self._events.setsockopt(zmq.SUBSCRIBE, b'')
+        self._events.setsockopt(zmq.SUBSCRIBE, b'')      # 服务端订阅所有
 
 
 def fork_task_context(functor, context=None):
